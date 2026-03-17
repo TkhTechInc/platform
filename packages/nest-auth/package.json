@@ -1,5 +1,5 @@
 {
-  "name": "@tkhtech/nest-auth",
+  "name": "@tkhtechinc/nest-auth",
   "version": "1.0.1",
   "description": "Shared NestJS auth guards, strategies, decorators, and interceptors for TKH Tech projects",
   "main": "dist/index.js",

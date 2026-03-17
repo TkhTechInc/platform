@@ -1,4 +1,4 @@
-# Kaba Migration Guide — Adopting @tkhtech/* Packages
+# Kaba Migration Guide — Adopting @tkhtechinc/* Packages
 
 Each step below is independently reversible. Perform one swap at a time. Test after each.
 
@@ -10,11 +10,11 @@ Add `.npmrc` to `quickbooks/backend/`:
 //npm.pkg.github.com/:_authToken=${NPM_TOKEN}
 ```
 
-## Swap 1: @tkhtech/domain-errors
+## Swap 1: @tkhtechinc/domain-errors
 
 ```bash
 cd quickbooks/backend
-npm install @tkhtech/domain-errors
+npm install @tkhtechinc/domain-errors
 ```
 
 Delete: `src/shared/errors/DomainError.ts`
@@ -22,17 +22,17 @@ Delete: `src/shared/errors/DomainError.ts`
 Update all imports (find-and-replace):
 ```
 FROM: import { ... } from '@/shared/errors/DomainError';
-TO:   import { ... } from '@tkhtech/domain-errors';
+TO:   import { ... } from '@tkhtechinc/domain-errors';
 ```
 
 Verify: `npm run type-check`
 
 ---
 
-## Swap 2: @tkhtech/nest-dynamodb
+## Swap 2: @tkhtechinc/nest-dynamodb
 
 ```bash
-npm install @tkhtech/nest-dynamodb
+npm install @tkhtechinc/nest-dynamodb
 ```
 
 Delete: `src/nest/modules/dynamodb/dynamodb.module.ts`
@@ -43,23 +43,23 @@ In `src/nest/app.module.ts`:
 import { DynamoDBModule } from './modules/dynamodb/dynamodb.module';
 
 // TO:
-import { DynamoDBModule } from '@tkhtech/nest-dynamodb';
+import { DynamoDBModule } from '@tkhtechinc/nest-dynamodb';
 ```
 
 Update all repository files that import injection tokens:
 ```
 FROM: import { DYNAMODB_DOC_CLIENT } from '@/nest/modules/dynamodb/dynamodb.module';
-TO:   import { DYNAMODB_DOC_CLIENT } from '@tkhtech/nest-dynamodb';
+TO:   import { DYNAMODB_DOC_CLIENT } from '@tkhtechinc/nest-dynamodb';
 ```
 
 Verify: `npm run type-check`
 
 ---
 
-## Swap 3: @tkhtech/ai
+## Swap 3: @tkhtechinc/ai
 
 ```bash
-npm install @tkhtech/ai
+npm install @tkhtechinc/ai
 ```
 
 Delete: `src/domains/ai/providers/` (directory)
@@ -72,23 +72,23 @@ Delete: `src/domains/ai/MockSpeechToText.ts`
 
 Create `src/domains/ai/ai-compat.ts` (barrel re-export — zero breaking changes):
 ```typescript
-export * from '@tkhtech/ai';
+export * from '@tkhtechinc/ai';
 ```
 
 Update all domain imports that reference these files:
 ```
 FROM: import { ILLMProvider } from '@/domains/ai/ILLMProvider';
-TO:   import { ILLMProvider } from '@tkhtech/ai';
+TO:   import { ILLMProvider } from '@tkhtechinc/ai';
 ```
 
 Verify: `npm run type-check`
 
 ---
 
-## Swap 4: @tkhtech/nest-auth
+## Swap 4: @tkhtechinc/nest-auth
 
 ```bash
-npm install @tkhtech/nest-auth
+npm install @tkhtechinc/nest-auth
 ```
 
 Delete: `src/nest/common/guards/jwt-auth.guard.ts`
@@ -101,7 +101,7 @@ Delete: `src/nest/common/types/auth.types.ts`
 
 Create `src/nest/common/compat.ts` (barrel re-export — no breaking changes):
 ```typescript
-export * from '@tkhtech/nest-auth';
+export * from '@tkhtechinc/nest-auth';
 ```
 
 Update app.module.ts imports.
@@ -110,7 +110,7 @@ NOTE: Kaba's JwtStrategy uses cookie name 'qb_auth_token'.
 After migration, pass a custom cookie name:
 ```typescript
 // src/nest/modules/auth/kaba-jwt.strategy.ts
-import { JwtStrategy } from '@tkhtech/nest-auth';
+import { JwtStrategy } from '@tkhtechinc/nest-auth';
 export class KabaJwtStrategy extends JwtStrategy {
   // override AUTH_COOKIE_NAME = 'qb_auth_token' if needed
 }
@@ -123,6 +123,6 @@ Verify: `npm run type-check && npm run build && npm run test`
 ## Rollback
 
 Each swap is independently reversible:
-1. `npm uninstall @tkhtech/<package>`
+1. `npm uninstall @tkhtechinc/<package>`
 2. Restore the deleted file from git: `git checkout HEAD -- <file>`
 3. Revert the import changes

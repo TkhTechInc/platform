@@ -1,5 +1,5 @@
 {
-  "name": "@tkhtech/nest-dynamodb",
+  "name": "@tkhtechinc/nest-dynamodb",
   "version": "1.0.2",
   "description": "Shared NestJS DynamoDB module for TKH Tech projects",
   "main": "dist/index.js",

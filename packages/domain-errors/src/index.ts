@@ -1,5 +1,5 @@
 /**
- * @tkhtech/domain-errors
+ * @tkhtechinc/domain-errors
  *
  * Shared domain error hierarchy for all TKH Tech services.
  * Compatible with Kaba (quickbooks), Events, and Payments call sites.

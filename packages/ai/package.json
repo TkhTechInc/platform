@@ -1,5 +1,5 @@
 {
-  "name": "@tkhtech/ai",
+  "name": "@tkhtechinc/ai",
   "version": "1.0.2",
   "description": "Shared AI provider interfaces and implementations for TKH Tech projects",
   "main": "dist/index.js",

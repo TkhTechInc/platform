@@ -1,5 +1,5 @@
 /**
- * @tkhtech/nest-dynamodb
+ * @tkhtechinc/nest-dynamodb
  *
  * Global NestJS module providing DynamoDB clients via DI.
  * Source of truth: Kaba (quickbooks) — most complete version.

@@ -1,5 +1,5 @@
 {
-  "name": "@tkhtech/platform",
+  "name": "@tkhtechinc/platform",
   "private": true,
   "workspaces": [
     "packages/*"

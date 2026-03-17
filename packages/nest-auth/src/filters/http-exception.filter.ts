@@ -11,7 +11,7 @@ import type { Request, Response } from 'express';
 /**
  * Global exception filter. Maps DomainError subclasses and HttpExceptions to consistent JSON.
  *
- * Works with or without @tkhtech/domain-errors. If DomainError is available, it reads
+ * Works with or without @tkhtechinc/domain-errors. If DomainError is available, it reads
  * statusCode, code, and details from the error instance.
  *
  * Response shape:
@@ -37,7 +37,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     let code = 'INTERNAL_SERVER_ERROR';
     let details: unknown;
 
-    // DomainError duck-typing — works without direct import of @tkhtech/domain-errors
+    // DomainError duck-typing — works without direct import of @tkhtechinc/domain-errors
     if (isDomainError(exception)) {
       status = exception.statusCode;
       message = exception.message;

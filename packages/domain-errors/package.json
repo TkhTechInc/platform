@@ -1,5 +1,5 @@
 {
-  "name": "@tkhtech/domain-errors",
+  "name": "@tkhtechinc/domain-errors",
   "version": "1.0.1",
   "description": "Shared domain error hierarchy for TKH Tech projects",
   "main": "dist/index.js",
