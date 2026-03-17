@@ -3,7 +3,17 @@ name: Publish Packages
 on:
   push:
     tags:
-      - '*/v*'  # e.g. domain-errors/v1.0.0, ai/v1.2.0
+      - '**/v[0-9]*'   # matches ai/v1.0.2, domain-errors/v1.0.1, etc.
+  workflow_dispatch:
+    inputs:
+      package:
+        description: 'Package name to publish (e.g. ai, domain-errors)'
+        required: true
+        type: string
+      version:
+        description: 'Version tag (e.g. v1.0.2)'
+        required: true
+        type: string
 
 jobs:
   publish:
@@ -28,10 +38,19 @@ jobs:
       - name: Build all packages
         run: npm run build
 
+      - name: Resolve package name
+        id: resolve
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "package=${{ inputs.package }}" >> $GITHUB_OUTPUT
+          else
+            TAG="${{ github.ref_name }}"
+            echo "package=${TAG%%/v*}" >> $GITHUB_OUTPUT
+          fi
+
       - name: Publish changed package
         run: |
-          TAG="${{ github.ref_name }}"
-          PACKAGE="${TAG%%/v*}"
+          PACKAGE="${{ steps.resolve.outputs.package }}"
           cd packages/$PACKAGE
           npm publish --access restricted
         env:
