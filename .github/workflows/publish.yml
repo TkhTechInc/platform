@@ -3,7 +3,11 @@ name: Publish Packages
 on:
   push:
     tags:
-      - '**/v[0-9]*'   # matches ai/v1.0.2, domain-errors/v1.0.1, etc.
+      - 'domain-errors/v*'
+      - 'ai/v*'
+      - 'nest-dynamodb/v*'
+      - 'nest-auth/v*'
+      - 'cdk-constructs/v*'
   workflow_dispatch:
     inputs:
       package:
