@@ -12,6 +12,11 @@
     "test": "jest",
     "prepublishOnly": "npm run build"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TkhTechInc/platform.git",
+    "directory": "packages/domain-errors"
+  },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com",
     "access": "restricted"
