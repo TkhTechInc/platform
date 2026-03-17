@@ -7,6 +7,7 @@ export * from './ISpeechToText';
 export { ClaudeProvider } from './providers/ClaudeProvider';
 export { OpenAIProvider } from './providers/OpenAIProvider';
 export { BedrockProvider } from './providers/BedrockProvider';
+export type { BedrockProviderOptions } from './providers/BedrockProvider';
 export { GeminiProvider } from './providers/GeminiProvider';
 export { OpenRouterProvider } from './providers/OpenRouterProvider';
 export { WhisperSpeechToText } from './providers/WhisperSpeechToText';
