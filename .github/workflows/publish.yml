@@ -1,0 +1,38 @@
+name: Publish Packages
+
+on:
+  push:
+    tags:
+      - '*/v*'  # e.g. domain-errors/v1.0.0, ai/v1.2.0
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@tkhtech'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build all packages
+        run: npm run build
+
+      - name: Publish changed package
+        run: |
+          TAG="${{ github.ref_name }}"
+          PACKAGE="${TAG%%/v*}"
+          cd packages/$PACKAGE
+          npm publish --access restricted
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

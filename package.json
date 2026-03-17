@@ -1,0 +1,19 @@
+{
+  "name": "@tkhtech/platform",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "publish:all": "npm run publish --workspaces --if-present"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
