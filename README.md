@@ -8,12 +8,19 @@ Shared component library for TKH Tech applications. This monorepo contains reusa
 
 - **[@tkhtechinc/domain-errors](./packages/domain-errors)** - Unified error hierarchy with HTTP status codes
 - **[@tkhtechinc/ai](./packages/ai)** - AI provider abstraction (Claude, OpenAI, Bedrock, Gemini)
-- **[@tkhtechinc/nest-auth](./packages/nest-auth)** - NestJS JWT authentication guards and strategies
-- **[@tkhtechinc/nest-dynamodb](./packages/nest-dynamodb)** - NestJS DynamoDB integration module
+
+### NestJS Packages
+
+- **[@tkhtechinc/nest-auth](./packages/nest-auth)** - JWT authentication guards and strategies with Passport.js
+- **[@tkhtechinc/nest-multi-tenant](./packages/nest-multi-tenant)** - Multi-tenant isolation with automatic tenant context management
+- **[@tkhtechinc/nest-permissions](./packages/nest-permissions)** - Fine-grained RBAC/ABAC permission system
+- **[@tkhtechinc/nest-audit](./packages/nest-audit)** - Audit logging with pluggable storage backends
+- **[@tkhtechinc/nest-circuit-breaker](./packages/nest-circuit-breaker)** - Circuit breaker pattern with opossum integration
+- **[@tkhtechinc/nest-dynamodb](./packages/nest-dynamodb)** - DynamoDB integration module
 
 ### Infrastructure
 
-- **[@tkhtechinc/cdk-constructs](./packages/cdk-constructs)** - AWS CDK L3 constructs for Lambda APIs, DynamoDB tables, and scheduled jobs
+- **[@tkhtechinc/cdk-constructs](./packages/cdk-constructs)** - AWS CDK constructs for serverless apps (API Gateway, Lambda, DynamoDB, monitoring)
 
 ## 🚀 Quick Start
 
@@ -29,10 +36,19 @@ Each package is published to GitHub Packages. Add `.npmrc` to your project:
 Then install packages:
 
 ```bash
+# Core
 npm install @tkhtechinc/domain-errors
 npm install @tkhtechinc/ai
+
+# NestJS
 npm install @tkhtechinc/nest-auth
+npm install @tkhtechinc/nest-multi-tenant
+npm install @tkhtechinc/nest-permissions
+npm install @tkhtechinc/nest-audit
+npm install @tkhtechinc/nest-circuit-breaker
 npm install @tkhtechinc/nest-dynamodb
+
+# Infrastructure
 npm install @tkhtechinc/cdk-constructs
 ```
 
@@ -94,6 +110,183 @@ export class InvoicesController {
   async findAll(@CurrentUser() user: JwtPayload) {
     // user.roles, user.permissions available
     return this.invoicesService.findByUser(user.sub);
+  }
+}
+```
+
+#### Using Multi-Tenant Isolation
+
+```typescript
+import { TenantGuard, Tenant, ITenantResolver } from '@tkhtechinc/nest-multi-tenant';
+
+// 1. Implement tenant resolver
+@Injectable()
+export class JwtTenantResolver implements ITenantResolver {
+  async resolve(context: ExecutionContext): Promise<TenantContext | null> {
+    const request = context.switchToHttp().getRequest();
+    const user = request.user; // From JWT
+    return user ? { tenantId: user.businessId } : null;
+  }
+}
+
+// 2. Use in controllers
+@Controller('customers')
+@UseGuards(JwtAuthGuard, TenantGuard)
+export class CustomerController {
+  @Get()
+  async list(@Tenant('tenantId') tenantId: string) {
+    // Automatic tenant isolation
+    return this.customerService.findByTenant(tenantId);
+  }
+}
+```
+
+#### Using Permissions
+
+```typescript
+import { PermissionGuard, RequirePermission, IPermissionService } from '@tkhtechinc/nest-permissions';
+
+// 1. Implement permission service
+@Injectable()
+export class DatabasePermissionService implements IPermissionService {
+  async hasPermission(userId: string, permission: string): Promise<boolean> {
+    // Check against your database
+    const user = await this.userRepo.findById(userId);
+    return user.permissions.includes(permission);
+  }
+}
+
+// 2. Protect routes
+@Controller('invoices')
+@UseGuards(JwtAuthGuard, PermissionGuard)
+export class InvoiceController {
+  @Post()
+  @RequirePermission('invoice:create')
+  async create(@CurrentUser() user: JwtPayload, @Body() dto: CreateInvoiceDto) {
+    return this.invoiceService.create(dto);
+  }
+
+  @Delete(':id')
+  @RequirePermission('invoice:delete')
+  async delete(@Param('id') id: string) {
+    return this.invoiceService.delete(id);
+  }
+}
+```
+
+#### Using Audit Logging
+
+```typescript
+import { IAuditLogger, AuditEvent } from '@tkhtechinc/nest-audit';
+
+// Implement audit logger
+@Injectable()
+export class DynamoDBAuditLogger implements IAuditLogger {
+  async log(event: AuditEvent): Promise<void> {
+    await this.dynamodb.putItem({
+      TableName: 'audit-log',
+      Item: {
+        pk: event.userId,
+        sk: `${event.timestamp}#${event.id}`,
+        ...event,
+      },
+    });
+  }
+}
+
+// Use in services
+@Injectable()
+export class InvoiceService {
+  constructor(private auditLogger: IAuditLogger) {}
+
+  async delete(invoiceId: string, userId: string) {
+    const invoice = await this.repo.findById(invoiceId);
+
+    await this.auditLogger.log({
+      id: uuidv4(),
+      userId,
+      action: 'invoice.delete',
+      resourceType: 'invoice',
+      resourceId: invoiceId,
+      beforeState: invoice,
+      afterState: null,
+      timestamp: new Date(),
+      metadata: { reason: 'user requested' },
+    });
+
+    await this.repo.delete(invoiceId);
+  }
+}
+```
+
+#### Using Circuit Breaker
+
+```typescript
+import { createCircuitBreaker } from '@tkhtechinc/nest-circuit-breaker';
+
+@Injectable()
+export class PaymentService {
+  private circuitBreaker = createCircuitBreaker(
+    async (amount: number, customerId: string) => {
+      // External payment API call
+      return this.paymentGateway.charge(amount, customerId);
+    },
+    {
+      timeout: 5000,
+      errorThresholdPercentage: 50,
+      resetTimeout: 30000,
+      fallback: async () => {
+        // Fallback: queue for retry
+        await this.paymentQueue.add({ amount, customerId });
+        return { status: 'queued' };
+      },
+    }
+  );
+
+  async processPayment(amount: number, customerId: string) {
+    return this.circuitBreaker.fire(amount, customerId);
+  }
+}
+```
+
+#### Using CDK Constructs
+
+```typescript
+import {
+  SingleTableDynamoDB,
+  ApiLambdaStack,
+  MultiEnvStack,
+  EnvironmentConfigBuilder
+} from '@tkhtechinc/cdk-constructs';
+
+export class MyAppStack extends MultiEnvStack {
+  constructor(scope: Construct, id: string) {
+    const config = EnvironmentConfigBuilder.fromEnvVars();
+    super(scope, id, { config });
+
+    // DynamoDB table with single-table design
+    const table = new SingleTableDynamoDB(this, 'Table', {
+      tableName: this.getResourceName('table'),
+      environment: config.environment,
+      globalSecondaryIndexes: [
+        { indexName: 'gsi1', partitionKey: 'pk', sortKey: 'gsi1sk' },
+      ],
+    });
+
+    // API Gateway + Lambda
+    const api = new ApiLambdaStack(this, 'Api', {
+      environment: config.environment,
+      lambda: {
+        functionName: this.getResourceName('api'),
+        code: lambda.Code.fromAsset('dist'),
+        handler: 'index.handler',
+        environment: {
+          TABLE_NAME: table.table.tableName,
+        },
+      },
+    });
+
+    api.grantTableAccess(table.table);
   }
 }
 ```

@@ -16,6 +16,10 @@
     { "path": "./packages/domain-errors" },
     { "path": "./packages/nest-auth" },
     { "path": "./packages/nest-dynamodb" },
-    { "path": "./packages/cdk-constructs" }
+    { "path": "./packages/cdk-constructs" },
+    { "path": "./packages/nest-multi-tenant" },
+    { "path": "./packages/nest-permissions" },
+    { "path": "./packages/nest-audit" },
+    { "path": "./packages/nest-circuit-breaker" }
   ]
 }

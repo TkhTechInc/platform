@@ -6,3 +6,12 @@ export type { TkhDynamoTableProps, GsiDefinition } from './TkhDynamoTableConstru
 
 export { TkhScheduledLambdaConstruct } from './TkhScheduledLambdaConstruct';
 export type { TkhScheduledLambdaProps } from './TkhScheduledLambdaConstruct';
+
+export { SingleTableDynamoDB } from './SingleTableDynamoDB';
+export type { SingleTableDynamoDBProps } from './SingleTableDynamoDB';
+
+export { ApiLambdaStack } from './ApiLambdaStack';
+export type { ApiLambdaStackProps } from './ApiLambdaStack';
+
+export { MultiEnvStack, EnvironmentConfigBuilder } from './MultiEnvStack';
+export type { MultiEnvStackProps, EnvironmentConfig } from './MultiEnvStack';

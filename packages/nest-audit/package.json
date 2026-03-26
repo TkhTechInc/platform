@@ -1,0 +1,33 @@
+{
+  "name": "@tkhtechinc/nest-audit",
+  "version": "1.0.0",
+  "description": "Audit logging utilities for NestJS with pluggable storage backends",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": ["nestjs", "audit", "logging", "compliance", "typescript"],
+  "author": "TKH Tech Inc",
+  "license": "MIT",
+  "peerDependencies": {
+    "@nestjs/common": "^10.0.0"
+  },
+  "devDependencies": {
+    "@nestjs/common": "^10.0.0",
+    "typescript": "^5.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TkhTechInc/platform",
+    "directory": "packages/nest-audit"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "restricted"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
