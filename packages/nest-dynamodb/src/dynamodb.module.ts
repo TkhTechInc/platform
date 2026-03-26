@@ -29,8 +29,7 @@ export const DYNAMODB_DOC_CLIENT = 'DYNAMODB_DOC_CLIENT';
     {
       provide: DYNAMODB_CLIENT,
       useFactory: (config: ConfigService) => {
-        const region =
-          config.get<string>('region') || process.env['AWS_REGION'] || 'af-south-1';
+        const region = config.get<string>('region') || process.env['AWS_REGION'] || 'af-south-1';
         return new DynamoDBClient({ region });
       },
       inject: [ConfigService],

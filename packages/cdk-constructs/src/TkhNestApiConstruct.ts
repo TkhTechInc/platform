@@ -37,14 +37,18 @@ export interface TkhNestApiProps {
   memoryMb?: number;
   /** Timeout in seconds. Default: 29 */
   timeoutSeconds?: number;
+  /** Reserved concurrent executions to prevent account-wide throttling. Default: 100 for prod, 10 for dev */
+  reservedConcurrency?: number;
   /** Enable X-Ray tracing. Default: false */
   enableXRay?: boolean;
-  /** Enable WAF with AWS managed rules (prod only recommended). Default: false */
+  /** Enable WAF with AWS managed rules. Default: false. Recommended for staging and prod */
   enableWaf?: boolean;
   /** Error alarm threshold. Default: 10 */
   errorAlarmThreshold?: number;
   /** SNS topic ARN for CloudWatch alarm notifications */
   alarmTopicArn?: string;
+  /** Cost center tag for billing. Default: 'engineering' */
+  costCenter?: string;
 }
 
 export class TkhNestApiConstruct extends Construct {
@@ -62,12 +66,15 @@ export class TkhNestApiConstruct extends Construct {
       corsOrigins,
       memoryMb = 1024,
       timeoutSeconds = 29,
+      reservedConcurrency,
       enableXRay = false,
       enableWaf = false,
       errorAlarmThreshold = 10,
+      costCenter = 'engineering',
     } = props;
 
     const isProd = environment === 'prod';
+    const isStaging = environment === 'staging';
     const resourcePrefix = `${appName}-${environment}`;
 
     // Lambda
@@ -78,6 +85,7 @@ export class TkhNestApiConstruct extends Construct {
       code: lambda.Code.fromAsset(lambdaAssetPath),
       timeout: Duration.seconds(timeoutSeconds),
       memorySize: memoryMb,
+      reservedConcurrentExecutions: reservedConcurrency ?? (isProd ? 100 : 10),
       tracing: enableXRay ? lambda.Tracing.ACTIVE : lambda.Tracing.DISABLED,
       environment: {
         NODE_ENV: isProd ? 'production' : 'development',
@@ -86,6 +94,12 @@ export class TkhNestApiConstruct extends Construct {
       },
       logRetention: isProd ? logs.RetentionDays.ONE_MONTH : logs.RetentionDays.ONE_WEEK,
     });
+
+    // Add cost allocation tags
+    cdk.Tags.of(this.apiLambda).add('Environment', environment);
+    cdk.Tags.of(this.apiLambda).add('Application', appName);
+    cdk.Tags.of(this.apiLambda).add('ManagedBy', 'CDK');
+    cdk.Tags.of(this.apiLambda).add('CostCenter', costCenter);
 
     // API Gateway
     const defaultCors: apigateway.CorsOptions = {
@@ -130,8 +144,8 @@ export class TkhNestApiConstruct extends Construct {
       alarmDescription: `${appName} API Lambda error rate exceeded ${errorAlarmThreshold} in 5 minutes`,
     });
 
-    // WAF (prod only)
-    if (enableWaf && isProd) {
+    // WAF (staging and prod)
+    if (enableWaf && (isProd || isStaging)) {
       const waf = new wafv2.CfnWebACL(this, 'Waf', {
         name: `${resourcePrefix}-waf`,
         scope: 'REGIONAL',

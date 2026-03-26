@@ -22,7 +22,7 @@ export class MockLLMProvider implements ILLMProvider {
   }
 
   async generateStructured<T>(
-    request: GenerateStructuredRequest<T>,
+    request: GenerateStructuredRequest<T>
   ): Promise<GenerateStructuredResponse<T>> {
     const schema = request.jsonSchema as { properties?: { category?: { enum?: string[] } } };
     const categoryEnum = schema?.properties?.category?.enum;

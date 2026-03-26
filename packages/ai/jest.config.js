@@ -1,5 +1,5 @@
 module.exports = {
-  displayName: 'domain-errors',
+  displayName: 'ai',
   preset: 'ts-jest',
   testEnvironment: 'node',
   roots: ['<rootDir>/src'],
@@ -8,5 +8,9 @@ module.exports = {
     'src/**/*.ts',
     '!src/**/*.spec.ts',
     '!src/**/*.test.ts',
+    '!src/index.ts',
   ],
+  moduleNameMapper: {
+    '^@tkhtechinc/domain-errors$': '<rootDir>/../domain-errors/src/index.ts',
+  },
 };

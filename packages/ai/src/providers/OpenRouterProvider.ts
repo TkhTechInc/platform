@@ -23,7 +23,6 @@ export class OpenRouterProvider extends BaseLLMProvider {
   }
 
   async generateText(request: GenerateTextRequest): Promise<GenerateTextResponse> {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const OpenAI = require('openai');
     const client = new OpenAI.default({
       apiKey: this.apiKey,
@@ -44,8 +43,7 @@ export class OpenRouterProvider extends BaseLLMProvider {
     });
 
     const choice = completion.choices?.[0];
-    const text =
-      (typeof choice?.message?.content === 'string' ? choice.message.content : '') ?? '';
+    const text = (typeof choice?.message?.content === 'string' ? choice.message.content : '') ?? '';
     const usage = completion.usage
       ? {
           inputTokens: completion.usage.prompt_tokens,
@@ -56,9 +54,8 @@ export class OpenRouterProvider extends BaseLLMProvider {
   }
 
   async generateStructured<T>(
-    request: GenerateStructuredRequest<T>,
+    request: GenerateStructuredRequest<T>
   ): Promise<GenerateStructuredResponse<T>> {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const OpenAI = require('openai');
     const client = new OpenAI.default({
       apiKey: this.apiKey,

@@ -17,7 +17,6 @@ export class WhisperSpeechToText implements ISpeechToText {
   }
 
   async transcribe(audio: string | Buffer): Promise<TranscriptionResult> {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const OpenAI = require('openai').default ?? require('openai');
     const client = new OpenAI({ apiKey: this.apiKey });
 
@@ -35,12 +34,12 @@ export class WhisperSpeechToText implements ISpeechToText {
     const blob = new Blob([file.data as any], { type: file.type });
     const fileObj = new File([blob], file.name, { type: file.type });
 
-    const result = await client.audio.transcriptions.create({
+    const result = (await client.audio.transcriptions.create({
       file: fileObj,
       model: this.model,
       // No language hint — let Whisper auto-detect (better for mixed Fon/French/Yoruba)
       response_format: 'verbose_json',
-    }) as { text: string; language?: string; duration?: number };
+    })) as { text: string; language?: string; duration?: number };
 
     return {
       text: result.text,

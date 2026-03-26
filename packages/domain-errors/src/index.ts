@@ -14,7 +14,7 @@ export class DomainError extends Error {
     message: string,
     public readonly code: string,
     public readonly statusCode: number,
-    public readonly details?: unknown,
+    public readonly details?: unknown
   ) {
     super(message);
     this.name = this.constructor.name;
@@ -35,9 +35,7 @@ export class ValidationError extends DomainError {
  */
 export class NotFoundError extends DomainError {
   constructor(resourceOrMessage: string, id?: string) {
-    const message = id
-      ? `${resourceOrMessage} with id ${id} not found`
-      : resourceOrMessage;
+    const message = id ? `${resourceOrMessage} with id ${id} not found` : resourceOrMessage;
     super(message, 'NOT_FOUND', 404);
   }
 }
@@ -97,13 +95,16 @@ export class BookingError extends DomainError {
 }
 
 export class QuotaExceededError extends DomainError {
-  constructor(feature: string, limit: number, current: number, plan?: string) {
+  public readonly retryAfter?: number;
+
+  constructor(feature: string, limit: number, current: number, plan?: string, retryAfter?: number) {
     super(
       `Quota exceeded for ${feature}. Limit: ${limit}, Current: ${current}.${plan ? ` Current plan: ${plan}.` : ''} Please upgrade to continue.`,
       'QUOTA_EXCEEDED',
-      402,
-      { feature, limit, current, plan },
+      429, // Changed from 402 to 429 (standard HTTP status for rate limiting)
+      { feature, limit, current, plan, retryAfter }
     );
+    this.retryAfter = retryAfter;
   }
 }
 
@@ -115,7 +116,12 @@ export class UnsupportedOperationError extends DomainError {
 
 export class ExternalServiceError extends DomainError {
   constructor(service: string, message: string, details?: unknown) {
-    super(`External service error (${service}): ${message}`, 'EXTERNAL_SERVICE_ERROR', 502, details);
+    super(
+      `External service error (${service}): ${message}`,
+      'EXTERNAL_SERVICE_ERROR',
+      502,
+      details
+    );
   }
 }
 
@@ -143,7 +149,10 @@ export class AIProviderError extends DomainError {
  */
 export class ErrorFactory {
   static createValidationError(field: string, message: string): ValidationError {
-    return new ValidationError(`Validation failed for field '${field}': ${message}`, { field, message });
+    return new ValidationError(`Validation failed for field '${field}': ${message}`, {
+      field,
+      message,
+    });
   }
 
   static createNotFoundError(resource: string, id: string): NotFoundError {
@@ -170,9 +179,12 @@ export class ErrorFactory {
     return new PaymentError(message, gatewayError);
   }
 
-  static createEventCapacityError(currentCapacity: number, maxCapacity: number): EventCapacityError {
+  static createEventCapacityError(
+    currentCapacity: number,
+    maxCapacity: number
+  ): EventCapacityError {
     return new EventCapacityError(
-      `Event capacity exceeded. Current: ${currentCapacity}, Maximum: ${maxCapacity}`,
+      `Event capacity exceeded. Current: ${currentCapacity}, Maximum: ${maxCapacity}`
     );
   }
 
@@ -197,7 +209,7 @@ export class ErrorFactory {
     feature: string,
     limit: number,
     current: number,
-    plan?: string,
+    plan?: string
   ): QuotaExceededError {
     return new QuotaExceededError(feature, limit, current, plan);
   }
@@ -208,17 +220,55 @@ export class ErrorFactory {
 }
 
 /**
- * Log a domain error to console with structured output.
+ * Helper to safely serialize objects with circular references
+ */
+function getCircularReplacer() {
+  const seen = new WeakSet();
+  return (_key: string, value: unknown) => {
+    if (typeof value === 'object' && value !== null) {
+      if (seen.has(value)) {
+        return '[Circular]';
+      }
+      seen.add(value);
+    }
+    return value;
+  };
+}
+
+/**
+ * Truncates a value to prevent log bombs
+ */
+function truncate(value: unknown, maxLength: number): unknown {
+  if (value === null || value === undefined) {
+    return value;
+  }
+
+  const stringified = JSON.stringify(value, getCircularReplacer());
+  if (stringified.length <= maxLength) {
+    return value;
+  }
+
+  return `${stringified.slice(0, maxLength)}... [truncated ${stringified.length - maxLength} chars]`;
+}
+
+/**
+ * Log a domain error to console with structured output and safe serialization.
  */
 export function logDomainError(error: DomainError, context?: Record<string, unknown>): void {
+  const safeDetails = error.details !== undefined ? truncate(error.details, 1000) : undefined;
+
+  const safeContext = context !== undefined ? truncate(context, 500) : undefined;
+
+  const stackLines = error.stack?.split('\n').slice(0, 10).join('\n');
+
   console.error('Domain Error:', {
     name: error.name,
     code: error.code,
     message: error.message,
     statusCode: error.statusCode,
-    details: error.details,
-    stack: error.stack,
-    context,
+    details: safeDetails,
+    stack: stackLines,
+    context: safeContext,
     timestamp: new Date().toISOString(),
   });
 }
@@ -234,7 +284,7 @@ export const ERROR_STATUS_MAP: Record<string, number> = {
   EVENT_CAPACITY_EXCEEDED: 422,
   PAYMENT_ERROR: 400,
   BOOKING_ERROR: 400,
-  QUOTA_EXCEEDED: 402,
+  QUOTA_EXCEEDED: 429, // Changed from 402 to 429 (standard HTTP status for rate limiting)
   EXTERNAL_SERVICE_ERROR: 502,
   PAYMENT_GATEWAY_ERROR: 502,
   DATABASE_ERROR: 500,

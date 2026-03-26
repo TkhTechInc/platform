@@ -22,7 +22,6 @@ export class GeminiProvider extends BaseLLMProvider {
   }
 
   async generateText(request: GenerateTextRequest): Promise<GenerateTextResponse> {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { GoogleGenerativeAI } = require('@google/generative-ai');
     const client = new GoogleGenerativeAI(this.apiKey);
 
@@ -37,7 +36,7 @@ export class GeminiProvider extends BaseLLMProvider {
       generationConfig,
     });
 
-    const result = await geminiModel.generateContent(request.prompt) as {
+    const result = (await geminiModel.generateContent(request.prompt)) as {
       response: {
         text(): string;
         usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number };
@@ -59,7 +58,7 @@ export class GeminiProvider extends BaseLLMProvider {
   }
 
   async generateStructured<T>(
-    request: GenerateStructuredRequest<T>,
+    request: GenerateStructuredRequest<T>
   ): Promise<GenerateStructuredResponse<T>> {
     const prompt = `${request.prompt}\n\nRespond ONLY with valid JSON that matches this schema:\n${JSON.stringify(request.jsonSchema, null, 2)}`;
     const textResponse = await this.generateText({ ...request, prompt });

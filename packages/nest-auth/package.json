@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "build": "tsc",
+    "test": "jest",
     "prepublishOnly": "npm run build"
   },
   "repository": {

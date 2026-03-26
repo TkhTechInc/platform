@@ -1,5 +1,5 @@
 module.exports = {
-  displayName: 'domain-errors',
+  displayName: 'nest-auth',
   preset: 'ts-jest',
   testEnvironment: 'node',
   roots: ['<rootDir>/src'],
@@ -8,5 +8,6 @@ module.exports = {
     'src/**/*.ts',
     '!src/**/*.spec.ts',
     '!src/**/*.test.ts',
+    '!src/index.ts',
   ],
 };

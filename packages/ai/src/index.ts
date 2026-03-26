@@ -16,3 +16,10 @@ export { WhisperSpeechToText } from './providers/WhisperSpeechToText';
 export { MockLLMProvider } from './providers/MockLLMProvider';
 export { MockReceiptExtractor } from './providers/MockReceiptExtractor';
 export { MockSpeechToText } from './providers/MockSpeechToText';
+
+// Utilities
+export { validateImageUrl, validateJsonSchema } from './utils/validation';
+export { withRetry, createTimeoutController } from './utils/retry';
+export type { RetryOptions } from './utils/retry';
+export { calculateCost, getModelPricing } from './utils/pricing';
+export type { ModelPricing } from './utils/pricing';

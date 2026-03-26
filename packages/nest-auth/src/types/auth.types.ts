@@ -10,7 +10,15 @@ export interface JwtPayload {
   organizationId?: string;
   phone?: string;
   email?: string;
+  /**
+   * @deprecated Use `roles` array instead. Will be removed in v2.0.0
+   * Backward compatibility: returns first role or 'user'
+   */
   role?: 'admin' | 'user';
+  /** Array of roles for RBAC. Default: ['user'] */
+  roles: string[];
+  /** Array of fine-grained permissions (e.g., 'invoices:write', 'events:read') */
+  permissions: string[];
   /** Email verified via sign-up verification flow */
   emailVerified?: boolean;
   /** Phone verified via OTP */
